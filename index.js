@@ -1,8 +1,33 @@
 const express  = require('express');
 const app = express();
 const port = 8000;
+const mysql = require('mysql');
 
 app.use(express.json())
+
+
+
+
+// ser connection database 
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'mydb_node',
+})
+
+//cheack db connection
+
+connection.connect((err) => {
+    if(err){
+        console.log(`Database connection error: `, err)
+    }else{
+        console.log(`Database connection is connected successfully`)
+    }
+})
+
+
+
 
 
 const students = [
