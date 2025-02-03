@@ -26,17 +26,20 @@ connection.connect((err) => {
     }
 })
 
+//
 
+app.get('/', (req, res) => {
 
+    const sql = "SELECT * FROM students"
+    connection.query(sql, (err, result) => {
+    if(err){
+        console.log(`esql querry error `, err);
+    }else{
+    res.json(result)
+    }
+ })
+})
 
-
-const students = [
-    {id: 1, name: "Ali", note: 15},
-    {id: 2, name: "Assma", note: 13},
-    {id: 3, name: "Omar", note: 19},
-    {id: 4, name: "Khalid", note: 18},
-    {id: 5, name: "Moha", note: 17},
-]
 
 // Find All Students
 app.get('/', (req, res) => {
