@@ -64,6 +64,27 @@ res.status(200).json({
 })
 })
 
+// Update New Students
+app.put('/update/:studentId', (req,res) => {
+const { studentId } = req.params;
+if(studentId){
+    // check student id existing
+  let foundStudent = students.find((item) => item.id === Number(studentId))
+   const index = students.indexOf(foundStudent)
+   students[index] = {
+        ...foundStudent,
+        note: foundStudent.note + 1
+   }
+   console.log(students)
+   res.json({
+    updatedStudents: students,
+    updatedItem: students[index]
+   })
+}
+
+})
+
+
 app.listen(port, () => {
     console.log(`App is running at http://localhost:${port}`)
 })
