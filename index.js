@@ -26,14 +26,14 @@ connection.connect((err) => {
     }
 })
 
-//
+// select data using sql query
 
-app.get('/', (req, res) => {
-
-    const sql = "SELECT * FROM students"
+app.get('/:studentId', (req, res) => {
+    const { studentId } = req.params;
+    const sql = `Select * from students where id = ${studentId}`;
     connection.query(sql, (err, result) => {
     if(err){
-        console.log(`esql querry error `, err);
+        console.log(`sql querry error `, err);
     }else{
     res.json(result)
     }
