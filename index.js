@@ -1,129 +1,101 @@
-const express  = require('express');
-const app = express();
-const port = 8000;
+const express = require('express');
 const mysql = require('mysql');
 
-app.use(express.json())
+const app = express();
+const port = 8000;
 
+// Middleware to parse JSON
+app.use(express.json());
 
-
-
-// ser connection database 
+// Database Connection
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
     database: 'mydb_node',
-})
-
-//cheack db connection
+});
 
 connection.connect((err) => {
-    if(err){
-        console.log(`Database connection error: `, err)
-    }else{
-        console.log(`Database connection is connected successfully`)
+    if (err) {
+        console.error('Database connection error:', err);
+    } else {
+        console.log('Database connection established successfully');
     }
-})
+});
 
-// select data using sql query
-
-app.get('/:studentId', (req, res) => {
-    const { studentId } = req.params;
-    const sql = `Select * from students where id = ${studentId}`;
-    connection.query(sql, (err, result) => {
-    if(err){
-        console.log(`sql querry error `, err);
-    }else{
-    res.json(result)
-    }
- })
-})
-
-// Delete record
-
-const sql = 'DELETE FROM students WHERE id = ?';
-connection.query(sql, (err) => {
-    if(err){
-        console.log(`sql querry error `, err);
-    }else{
-        console.log(`record deleted successfully !`);
-    }
-})
-
-
-// Find All Students
-app.get('/', (req, res) => {
-    res.send(students)
-})
-
-// Find one Student
-app.get('/:studentId', (req, res) => {
-    const { studentId } = req.params;
-   const foundStudent = students.find((item) => item.id === Number(studentId))
-    if(foundStudent){
-        res.status(200).json({
-            message: 'Found Student',
-            data: foundStudent
-        })
-    }
-})
-
-app.delete('/:studentId', (req, res) => {
-    const { studentId } = req.params;
-    const foundStudent = students.find((item) => item.id === Number(studentId))
-    if(!foundStudent){
-      // console.log(`The stendent with this ID: ${studentId} Not Found`)
-        res.status(500).json({
-            message: `The stendent with this ID: ${studentId} Not Found`
-        })
-    }else{
-        const newStudentData = students.filter((item) => item.id !== Number(studentId))
-        if(newStudentData){
-            res.status(200).json({
-                data: newStudentData
-            })            
+app.get('/students', (req, res) => {
+    const sql = 'SELECT * FROM students';
+    connection.query(sql, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query error' });
         }
+        res.json(results);
+    });
+});
 
+app.get('/students/:studentId', (req, res) => {
+    const { studentId } = req.params;
+    const sql = 'SELECT * FROM students WHERE id = ?';
+    
+    connection.query(sql, [studentId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query error' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+        res.json(results[0]);
+    });
+});
+
+app.post('/students', (req, res) => {
+    const { name, note } = req.body;
+    
+    if (!name || !note) {
+        return res.status(400).json({ message: 'Name and Note are required' });
     }
 
-})
+    const sql = 'INSERT INTO students (name, note) VALUES (?, ?)';
+    connection.query(sql, [name, note], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database insert error' });
+        }
+        res.status(201).json({ message: 'New student added', id: result.insertId });
+    });
+});
 
-// Create New Students 
+app.put('/students/:studentId', (req, res) => {
+    const { studentId } = req.params;
+    const { name, note } = req.body;
 
-app.post('/create', (req,res) => {
-let { newStudent } = req.body
-newStudent = {
-    id: students.length + 1,
-    ...newStudent,
-}
-students.push(newStudent)
-res.status(200).json({
-    data : students,
-})
-})
+    const sql = 'UPDATE students SET name = ?, note = ? WHERE id = ?';
+    connection.query(sql, [name, note, studentId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database update error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+        res.json({ message: 'Student updated successfully' });
+    });
+});
 
-// Update New Students
-app.put('/update/:studentId', (req,res) => {
-const { studentId } = req.params;
-if(studentId){
-    // check student id existing
-  let foundStudent = students.find((item) => item.id === Number(studentId))
-   const index = students.indexOf(foundStudent)
-   students[index] = {
-        ...foundStudent,
-        note: foundStudent.note + 1
-   }
-   console.log(students)
-   res.json({
-    updatedStudents: students,
-    updatedItem: students[index]
-   })
-}
+app.delete('/students/:studentId', (req, res) => {
+    const { studentId } = req.params;
 
-})
+    const sql = 'DELETE FROM students WHERE id = ?';
+    connection.query(sql, [studentId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database delete error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+        res.json({ message: 'Student deleted successfully' });
+    });
+});
 
-
+// Start Server
 app.listen(port, () => {
-    console.log(`App is running at http://localhost:${port}`)
-})
+    console.log(`App is running at http://localhost:${port}`);
+});
