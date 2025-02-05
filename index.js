@@ -40,6 +40,17 @@ app.get('/:studentId', (req, res) => {
  })
 })
 
+// Delete record
+
+const sql = 'DELETE FROM students WHERE id = ?';
+connection.query(sql, (err) => {
+    if(err){
+        console.log(`sql querry error `, err);
+    }else{
+        console.log(`record deleted successfully !`);
+    }
+})
+
 
 // Find All Students
 app.get('/', (req, res) => {
